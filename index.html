@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+            text-align: center; /* Center align the heading */
+            font-size: 24px; /* Ensure the font size is large enough */
+            font-weight: bold; /* Make the heading bold */
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>House Price Prediction</h1>
+        <form id="predictionForm">
+            <label for="MedInc">Median Income:</label>
+            <input type="number" id="MedInc" name="MedInc" step="0.01" required>
+            
+            <label for="HouseAge">House Age:</label>
+            <input type="number" id="HouseAge" name="HouseAge" step="0.01" required>
+            
+            <label for="AveRooms">Average Rooms:</label>
+            <input type="number" id="AveRooms" name="AveRooms" step="0.01" required>
+            
+            <label for="AveOccup">Average Occupancy:</label>
+            <input type="number" id="AveOccup" name="AveOccup" step="0.01" required>
+            
+            <label for="Latitude">Latitude:</label>
+            <input type="number" id="Latitude" name="Latitude" step="0.01" required>
+            
+            <label for="Longitude">Longitude:</label>
+            <input type="number" id="Longitude" name="Longitude" step="0.01" required>
+
+            <label for="Population">Population:</label>
+            <input type="number" id="Population" name="Population" step="1" required>
+            
+            <label for="Households">Households:</label>
+            <input type="number" id="Households" name="Households" step="1" required>
+            
+            <button type="submit">Predict</button>
+        </form>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const features = [
+                parseFloat(document.getElementById('MedInc').value),
+                parseFloat(document.getElementById('HouseAge').value),
+                parseFloat(document.getElementById('AveRooms').value),
+                parseFloat(document.getElementById('AveOccup').value),
+                parseFloat(document.getElementById('Latitude').value),
+                parseFloat(document.getElementById('Longitude').value),
+                parseFloat(document.getElementById('Population').value),
+                parseFloat(document.getElementById('Households').value)
+            ];
+
+            fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ features: features })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Multiply the prediction by 100,000 to get the actual house price
+                const actualPrice = data.prediction * 100000;
+                document.getElementById('result').textContent = `Predicted price: $${actualPrice.toFixed(2)}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').textContent = 'Error predicting price.';
+            });
+        });
+    </script>
+</body>
+</html>
