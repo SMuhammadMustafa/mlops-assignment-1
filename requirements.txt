@@ -61,7 +61,7 @@ Pygments==2.17.2
 pyparsing==3.0.9
 python-dateutil==2.8.2
 pytz==2023.3
-pywin32==306
+pywin32
 pyzmq==25.1.2
 QuantStats==0.0.62
 requests==2.31.0
