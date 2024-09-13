@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev
-      - stage
+      - staging
       - prod
 
 jobs:
