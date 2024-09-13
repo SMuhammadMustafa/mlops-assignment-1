@@ -1,0 +1,60 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - stage
+      - prod
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+        python-version: [3.8, 3.9, 3.10]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install flake8 pytest pylint
+
+      # Linting
+      - name: Run Flake8 (Linting)
+        run: |
+          flake8 .
+
+      # Static Code Analysis
+      - name: Run Pylint (Static Code Analysis)
+        run: |
+          pylint **/*.py
+
+      # Unit Tests
+      - name: Run Unit Tests
+        run: |
+          pytest test.py --maxfail=3 --disable-warnings
+
+      # Additional step for different environments
+      - name: Set up environment variables for ${{ matrix.environment }}
+        run: |
+          echo "ENV=${{ matrix.environment }}" >> $GITHUB_ENV
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
+
+      # Build and Test for specific environment
+      - name: Build and Test in ${{ matrix.environment }}
+        run: |
+          echo "Running in ${{ matrix.environment }} environment"
+          # Add your build/test scripts here, e.g., invoking API, testing models.
