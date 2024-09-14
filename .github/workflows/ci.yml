@@ -13,47 +13,46 @@ on:
       - prod
 
 jobs:
-  # build-and-test:
-  #   runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #     with:
-  #       fetch-depth: 0  # Fetch all history so that all branches are available
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history so that all branches are available
 
-  #   - name: Set up Python 3.11.9
-  #     uses: actions/setup-python@v2
-  #     with:
-  #       python-version: 3.11.9
+    - name: Set up Python 3.11.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11.9
 
-  #   - name: Install dependencies
-  #     run: |
-  #       python -m pip install --upgrade pip
-  #       pip install -r requirements.txt
-  #       pip install flake8 pylint
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8
 
-  #   - name: Run linting
-  #     run: |
-  #       flake8 . || echo "Linting errors detected"
-  #       pylint */.py || echo "Pylint warnings/errors detected"
+    - name: Run linting
+      run: |
+        flake8 .
 
-  #   - name: Run unit tests
-  #     run: |
-  #       python -m unittest discover -s tests || echo "Test failures detected"
+    - name: Run unit tests
+      run: |
+        python -m unittest discover -s tests || echo "Test failures detected"
 
-  #   - name: Initialize CodeQL
-  #     uses: github/codeql-action/init@v2
-  #     with:
-  #       languages: python
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: python
 
-  #   - name: Perform CodeQL analysis
-  #     uses: github/codeql-action/analyze@v2
-  #     with:
-  #       languages: python
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        languages: python
 
   # Push to staging after successful tests on dev
   push-to-staging:
-    # needs: build-and-test
+    needs: build-and-test
     if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-latest
     steps:
