@@ -7,7 +7,7 @@ permissions:
 
 on:
   push:
-    branches: 
+    branches:
       - dev
       - staging
       - prod
@@ -49,59 +49,53 @@ jobs:
       with:
         languages: python
 
-  # Build Docker image and deploy to dev on every push to dev
-  deploy-dev:
+  # Push to staging after successful tests on dev
+  push-to-staging:
     needs: build-and-test
     if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Build Docker image for dev
-        run: |
-          docker build -t my-app:dev .
+    - name: Push changes to staging
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git checkout staging
+        git merge dev
+        git push origin staging
 
-      - name: Deploy to Vercel (Dev)
-        run: |
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --env NODE_ENV=development
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
-  # Promote from dev to staging only after successful dev testing
-  deploy-staging:
-    needs: deploy-dev
+  # Push to prod after successful tests on staging
+  push-to-prod:
+    needs: push-to-staging
     if: github.ref == 'refs/heads/staging' && success()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Build Docker image for staging
-        run: |
-          docker build -t my-app:staging .
+    - name: Push changes to prod
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git checkout prod
+        git merge staging
+        git push origin prod
 
-      - name: Deploy to Vercel (Staging)
-        run: |
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --env NODE_ENV=staging
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
-  # Promote from staging to production only after successful staging
+  # Deploy to Vercel after successful tests on prod
   deploy-prod:
-    needs: deploy-staging
+    needs: push-to-prod
     if: github.ref == 'refs/heads/prod' && success()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Build Docker image for production
-        run: |
-          docker build -t my-app:prod .
+    - name: Build Docker image for production
+      run: |
+        docker build -t my-app:prod .
 
-      - name: Deploy to Vercel (Prod)
-        run: |
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --env NODE_ENV=production
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    - name: Deploy to Vercel (Prod)
+      run: |
+        vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} --env NODE_ENV=production
+      env:
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
