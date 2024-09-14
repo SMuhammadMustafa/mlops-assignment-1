@@ -52,7 +52,7 @@ jobs:
   # Build Docker image and deploy to dev on every push to dev
   deploy-dev:
     needs: build-and-test
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   # Promote from dev to staging only after successful dev testing
   deploy-staging:
     needs: deploy-dev
-    if: github.ref == 'refs/heads/staging'
+    if: github.ref == 'refs/heads/staging' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -90,7 +90,7 @@ jobs:
   # Promote from staging to production only after successful staging
   deploy-prod:
     needs: deploy-staging
-    if: github.ref == 'refs/heads/prod'
+    if: github.ref == 'refs/heads/prod' && success()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
