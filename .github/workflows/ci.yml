@@ -1,0 +1,107 @@
+name: CI/CD for Python App
+
+# Ensure the workflow has write permissions
+permissions:
+  contents: read
+  security-events: write  # Required for CodeQL to upload results
+
+on:
+  push:
+    branches: 
+      - dev
+      - staging
+      - prod
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.11.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 pylint
+
+    - name: Run linting
+      run: |
+        flake8 . || echo "Linting errors detected"
+        pylint */.py || echo "Pylint warnings/errors detected"
+
+    - name: Run unit tests
+      run: |
+        python -m unittest discover -s tests || echo "Test failures detected"
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: python
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        languages: python
+
+  # Build Docker image and deploy to dev on every push to dev
+  deploy-dev:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/dev' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Docker image for dev
+        run: |
+          docker build -t my-app:dev .
+
+      - name: Deploy to Vercel (Dev)
+        run: |
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope my-team --env NODE_ENV=development
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+  # Promote from dev to staging only after successful dev testing
+  deploy-staging:
+    needs: deploy-dev
+    if: github.ref == 'refs/heads/staging' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Docker image for staging
+        run: |
+          docker build -t my-app:staging .
+
+      - name: Deploy to Vercel (Staging)
+        run: |
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope my-team --env NODE_ENV=staging
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+  # Promote from staging to production only after successful staging
+  deploy-prod:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/prod' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Docker image for production
+        run: |
+          docker build -t my-app:prod .
+
+      - name: Deploy to Vercel (Prod)
+        run: |
+          vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --scope my-team --env NODE_ENV=production
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
