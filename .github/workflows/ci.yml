@@ -76,7 +76,7 @@ jobs:
   # Push to prod after successful tests on staging
   push-to-prod:
     needs: push-to-staging
-    if: github.ref == 'refs/heads/staging' && success()
+    if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -98,7 +98,7 @@ jobs:
   # Deploy to Vercel after successful tests on prod
   deploy-prod:
     needs: push-to-prod
-    if: github.ref == 'refs/heads/prod' && success()
+    if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
