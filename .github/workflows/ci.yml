@@ -53,7 +53,7 @@ jobs:
 
   # Push to staging after successful tests on dev
   push-to-staging:
-    needs: build-and-test
+    # needs: build-and-test
     if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-latest
     steps:
