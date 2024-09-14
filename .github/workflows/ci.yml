@@ -1,3 +1,17 @@
+name: CI/CD for Python App
+
+# Ensure the workflow has write permissions
+permissions:
+  contents: read
+  security-events: write  # Required for CodeQL to upload results
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - prod
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
