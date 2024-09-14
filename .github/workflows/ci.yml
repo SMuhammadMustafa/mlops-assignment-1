@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history so that all branches are available
 
     - name: Set up Python 3.11.9
       uses: actions/setup-python@v2
@@ -56,12 +58,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history so that all branches are available
 
     - name: Push changes to staging
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
-        git checkout staging
+        git checkout staging || git checkout -b staging
         git merge dev
         git push origin staging
 
@@ -72,12 +76,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history so that all branches are available
 
     - name: Push changes to prod
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
-        git checkout prod
+        git checkout prod || git checkout -b prod
         git merge staging
         git push origin prod
 
@@ -88,6 +94,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # Fetch all history so that all branches are available
 
     - name: Build Docker image for production
       run: |
