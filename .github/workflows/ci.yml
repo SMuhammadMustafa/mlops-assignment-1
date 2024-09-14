@@ -1,17 +1,3 @@
-name: CI/CD for Python App
-
-# Ensure the workflow has write permissions
-permissions:
-  contents: read
-  security-events: write  # Required for CodeQL to upload results
-
-on:
-  push:
-    branches:
-      - dev
-      - staging
-      - prod
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -61,10 +47,14 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history so that all branches are available
 
-    - name: Push changes to staging
+    - name: Set up Git for pushing
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
+        git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}.git
+
+    - name: Push changes to staging
+      run: |
         git checkout staging || git checkout -b staging
         git merge dev
         git push origin staging
@@ -79,10 +69,14 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history so that all branches are available
 
-    - name: Push changes to prod
+    - name: Set up Git for pushing
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
+        git remote set-url origin https://x-access-token:${{ secrets.PAT }}@github.com/${{ github.repository }}.git
+
+    - name: Push changes to prod
+      run: |
         git checkout prod || git checkout -b prod
         git merge staging
         git push origin prod
