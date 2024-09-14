@@ -2,7 +2,7 @@ name: CI/CD for Python App
 
 # Ensure the workflow has write permissions
 permissions:
-  contents: read
+  contents: write
   security-events: write  # Required for CodeQL to upload results
 
 on:
